@@ -1,66 +1,14 @@
-const API_BASE = "http://localhost:5000/api";
-
+const API_BASE = `${window.location.origin}/api`;
+const state = { token: localStorage.getItem("scholarshipToken"), user: JSON.parse(localStorage.getItem("scholarshipUser") || "null") };
 async function request(endpoint, options = {}) {
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers: {
-      ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }),
-      ...(options.headers || {})
-    }
-  });
-
+  const headers = { ...(options.body instanceof FormData ? {} : { "Content-Type": "application/json" }), ...(options.headers || {}) };
+  if (state.token) headers.Authorization = `Bearer ${state.token}`;
+  const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
   const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(data.message || data.detail || "Request failed");
-  }
-
+  if (!response.ok) throw new Error(data.message || data.detail || "Request failed");
   return data;
 }
-
-function showMessage(message, type = "info") {
-  const element = document.getElementById("message");
-  if (!element) return;
-  element.className = `alert alert-${type}`;
-  element.textContent = message;
-  element.classList.remove("d-none");
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("registerForm")?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    try {
-      await request("/auth/register", {
-        method: "POST",
-        body: JSON.stringify({
-          name: document.getElementById("registerName").value,
-          email: document.getElementById("registerEmail").value,
-          password: document.getElementById("registerPassword").value
-        })
-      });
-      showMessage("Registration successful. You can now log in.", "success");
-      event.target.reset();
-    } catch (error) {
-      showMessage(error.message, "danger");
-    }
-  });
-
-  document.getElementById("loginForm")?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    try {
-      const data = await request("/auth/login", {
-        method: "POST",
-        body: JSON.stringify({
-          email: document.getElementById("loginEmail").value,
-          password: document.getElementById("loginPassword").value
-        })
-      });
-      localStorage.setItem("scholarshipToken", data.token);
-      localStorage.setItem("scholarshipUser", JSON.stringify(data.user));
-      showMessage(`Welcome, ${data.user.name}.`, "success");
-      event.target.reset();
-    } catch (error) {
-      showMessage(error.message, "danger");
-    }
-  });
-});
+function message(text, type = "info") { const el = document.getElementById("message"); el.className = `alert alert-${type}`; el.textContent = text; el.classList.remove("d-none"); }
+function renderApplications(items) { document.getElementById("applications").innerHTML = items.length ? items.map(a => `<tr><td>${a.application_number}</td><td>${a.scheme_name || "-"}</td><td><span class="badge text-bg-secondary">${a.status}</span></td><td>${new Date(a.created_at).toLocaleDateString()}</td></tr>`).join("") : `<tr><td colspan="4">No applications yet.</td></tr>`; }
+async function loadDashboard() { if (!state.token) return; document.getElementById("auth").classList.add("d-none"); document.getElementById("dashboard").classList.remove("d-none"); document.getElementById("userName").textContent = state.user?.name || "Applicant"; const data = await request("/applications/mine"); renderApplications(data.applications); const schemes = await request("/schemes"); document.getElementById("schemeId").innerHTML = schemes.schemes.map(s => `<option value="${s.id}">${s.name}</option>`).join(""); }
+document.addEventListener("DOMContentLoaded", () => { document.getElementById("registerForm").onsubmit = async e => { e.preventDefault(); try { await request("/auth/register", { method: "POST", body: JSON.stringify({ name: registerName.value, email: registerEmail.value, password: registerPassword.value }) }); message("Registration successful. Log in to continue.", "success"); e.target.reset(); } catch (x) { message(x.message, "danger"); } }; document.getElementById("loginForm").onsubmit = async e => { e.preventDefault(); try { const d = await request("/auth/login", { method: "POST", body: JSON.stringify({ email: loginEmail.value, password: loginPassword.value }) }); state.token = d.token; state.user = d.user; localStorage.setItem("scholarshipToken", d.token); localStorage.setItem("scholarshipUser", JSON.stringify(d.user)); await loadDashboard(); } catch (x) { message(x.message, "danger"); } }; document.getElementById("applicationForm").onsubmit = async e => { e.preventDefault(); try { await request("/applications", { method: "POST", body: JSON.stringify({ schemeId: schemeId.value, formData: { course: course.value, institution: institution.value, annualIncome: annualIncome.value, marks: marks.value } }) }); message("Application submitted successfully.", "success"); e.target.reset(); const d = await request("/applications/mine"); renderApplications(d.applications); } catch (x) { message(x.message, "danger"); } }; document.getElementById("logout").onclick = () => { localStorage.clear(); location.reload(); }; loadDashboard().catch(x => message(x.message, "danger")); });

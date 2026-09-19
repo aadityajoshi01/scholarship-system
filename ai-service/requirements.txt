@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 pydantic
+# Optional OCR engine. The service falls back to a clear error if it is unavailable.
 easyocr
 opencv-python
 pillow
-imagehash
