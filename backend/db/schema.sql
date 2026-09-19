@@ -1,0 +1,67 @@
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role VARCHAR(30) DEFAULT 'applicant',
+    phone VARCHAR(20),
+    state VARCHAR(100),
+    district VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS schemes (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    description TEXT,
+    income_limit NUMERIC,
+    min_marks NUMERIC,
+    required_documents JSONB,
+    is_active BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS applications (
+    id SERIAL PRIMARY KEY,
+    application_number VARCHAR(50) UNIQUE NOT NULL,
+    applicant_id INTEGER REFERENCES users(id),
+    scheme_id INTEGER REFERENCES schemes(id),
+    status VARCHAR(40) DEFAULT 'draft',
+    ai_risk_score NUMERIC,
+    ocr_confidence NUMERIC,
+    officer_remarks TEXT,
+    submitted_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS documents (
+    id SERIAL PRIMARY KEY,
+    application_id INTEGER REFERENCES applications(id),
+    document_type VARCHAR(100) NOT NULL,
+    original_filename VARCHAR(255),
+    stored_filename VARCHAR(255),
+    file_path TEXT,
+    extracted_text TEXT,
+    ocr_confidence NUMERIC,
+    ai_generated_probability NUMERIC,
+    verification_status VARCHAR(40) DEFAULT 'pending',
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS deficiencies (
+    id SERIAL PRIMARY KEY,
+    application_id INTEGER REFERENCES applications(id),
+    document_id INTEGER REFERENCES documents(id),
+    reason TEXT NOT NULL,
+    status VARCHAR(30) DEFAULT 'open',
+    applicant_response TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    application_id INTEGER REFERENCES applications(id),
+    action VARCHAR(100) NOT NULL,
+    remarks TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
