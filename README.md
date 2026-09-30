@@ -1,24 +1,18 @@
-# Scholarship & Fellowship Management System
+# Scholarship Application Platform
 
-An AI-assisted, end-to-end digital platform for managing scholarship and fellowship applications — from applicant registration and document submission to verification, deficiency tracking, selection, and administration.
+A self-hosted web app for running student scholarship schemes. Students apply online, upload proof documents, and track their application; sponsors configure scheme rules and process applications with OCR-assisted document checks.
 
-## The Problem
+## Why this exists
 
-Scholarship and fellowship scheme administration typically involves manual scrutiny, repeated correspondence, and multi-level verification. This causes processing delays, repetitive administrative effort, limited real-time visibility, and room for errors in verification and workflow management.
+Running scholarship schemes on paper or spreadsheets means slow reviews, repeated follow-ups with students over missing or unreadable documents, and no shared view of where each application stands. This project digitises the pipeline and automates the mechanical parts of checking, leaving judgement calls to reviewers.
 
-## The Solution
+## How it works
 
-A single, secure, configurable platform that brings the complete process — application submission, eligibility verification, document scrutiny, selection, communication, and post-application management — onto one integrated system with separate interfaces for applicants and administrators.
-
-## Key Features
-
-- **End-to-end digital applications** — registration, scheme selection, form submission, document upload, and status tracking.
-- **Configurable schemes** — eligibility criteria (income limit, minimum marks) and required documents are stored per scheme in the database, so new schemes can be added without code changes.
-- **AI-assisted document verification** — uploaded documents are sent to a FastAPI AI service that runs OCR (EasyOCR, English + Hindi) and returns extracted text with a confidence score for officer review.
-- **Deficiency workflow** — officers can flag incomplete or deficient documents; applicants see the reason, respond, and resubmit.
-- **Application tracking** — applicants track every application and its verification status in real time.
-- **Audit trail** — every action on an application is logged (`audit_logs`) for transparency and accountability.
-- **Human oversight retained** — AI output (OCR text, confidence) supports decisions but never replaces them; final verification and selection stay with the officer.
+- **Applicants** register, choose a scheme, fill in a form, upload scans of their documents, fix anything a reviewer flags, and follow the status of each application.
+- **Schemes are data, not code** — income ceiling, minimum marks, and the required document list live in PostgreSQL rows (JSONB), so a new scheme is an insert, not a deploy.
+- **Document checks** — each upload is forwarded to a small FastAPI service that runs EasyOCR (English + Hindi) and returns the extracted text with an average confidence figure. Reviewers see this next to the original file; nothing is auto-approved.
+- **Deficiency loop** — a reviewer rejects one document with a reason, the applicant re-uploads, and the exchange stays linked to the application.
+- **Audit log** — every status change is written to `audit_logs`.
 
 ## Screenshots
 
@@ -127,7 +121,7 @@ The first OCR run downloads EasyOCR models, so allow a few minutes.
 
 Working: auth, scheme CRUD, application submission, document upload with OCR extraction, deficiency records, audit logging.
 
-Planned: admin dashboards and analytics, rule-based eligibility auto-checks, merit ranking, email/SMS notifications, and post-selection management.
+Planned: admin dashboards and analytics, rule-based eligibility auto-checks, merit ranking, email/SMS notifications, and payout tracking.
 
 ## License
 
