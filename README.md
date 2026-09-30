@@ -20,6 +20,28 @@ A single, secure, configurable platform that brings the complete process — app
 - **Audit trail** — every action on an application is logged (`audit_logs`) for transparency and accountability.
 - **Human oversight retained** — AI output (OCR text, confidence) supports decisions but never replaces them; final verification and selection stay with the officer.
 
+## Screenshots
+
+Applicant portal — scheme listings and application entry point:
+
+![Applicant portal home](docs/screenshots/01-home-portal.png)
+
+Eligibility pre-check — deterministic rule checks against the selected scheme's published norms (officer verification still applies):
+
+![Eligibility pre-check](docs/screenshots/05-eligibility-precheck.png)
+
+AI document screening — an uploaded scan is screened and returned with a risk label and the tamper signals that caused it:
+
+![AI screening result](docs/screenshots/02-ai-screening-result.png)
+
+Error Level Analysis residual map — brighter areas changed more on recompression, flagging possible edits for human review:
+
+![ELA residual map](docs/screenshots/03-ela-forensic-map.png)
+
+OCR extraction — text pulled from the document with per-run confidence, shown beside the screening result:
+
+![OCR extracted text](docs/screenshots/04-ocr-extracted-text.png)
+
 ## Tech Stack
 
 | Layer | Technology |
